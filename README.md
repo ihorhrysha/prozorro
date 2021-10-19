@@ -2,7 +2,7 @@
 Install Scrapy and Pymongo
 
 ```bash
-pip install -r install -r requirements.txt 
+pip install -r requirements.txt 
 ```
 
 [Install mongo](https://hub.docker.com/_/mongo) in docker
