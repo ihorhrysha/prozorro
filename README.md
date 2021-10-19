@@ -13,5 +13,6 @@ Generate file with seed ids from notebook - **tender_ids.txt**
 run spider
 
 ```bash
-scrapy crawl tenders
+cd scraper
+scrapy crawl tenders -a start='2021-01-01' -a end='2021-10-01'
 ```
