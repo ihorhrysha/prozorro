@@ -3,8 +3,10 @@ import time
 from typing import Tuple, Optional
 
 from diskcache import Cache
-from geopy.geocoders.base import Geocoder
 from geopy.geocoders import Nominatim
+
+
+ALLOWED_COUNTRIES = ['україна']
 
 class CachedGeolocator:
 
@@ -16,12 +18,15 @@ class CachedGeolocator:
     def __init__(self, 
             geocoder: Nominatim = None, 
             cache_dir: str = None, 
+            bad_cache_dir: str = None, 
             antithrottling: bool = True, 
             verbose:bool=False):
         
         self.geocoder: Nominatim = geocoder or Nominatim(user_agent="transparent_chelicks")
         cache_dir = cache_dir or './'
         self.cache: Cache = Cache(directory=cache_dir)
+        bad_cache_dir = bad_cache_dir or './bad'
+        self.bad_cache: Cache = Cache(directory=bad_cache_dir)
         self.antithrottling = antithrottling
         self.verbose = verbose
 
@@ -30,6 +35,11 @@ class CachedGeolocator:
             if self.verbose:
                 print(f'+++In cache {query}')
             return self.cache[query]
+        elif query in self.bad_cache:
+            # not to wait on multiple runs
+            if self.verbose:
+                print(f'+++In BAD cache {query}')
+            return None
         else:
             if self.verbose:
                 print(f'---Call for {query}')
@@ -41,20 +51,25 @@ class CachedGeolocator:
                 
                 self.next_call_at = datetime.utcnow() + self.TIMEOUT
 
-            geolocation = self.geocoder.geocode(query)                        
+            geolocation = self.geocoder.geocode(query)
             point = (geolocation.point.latitude, geolocation.point.longitude) if geolocation else None
             if self.verbose and point is None:
                 print(f'!!!Not found {query}')
             
-            if point is not None:
+            if point is None:
+                # to make 
+                self.bad_cache.set(query, point)
+            else:
                 self.cache.set(query, point)
 
             return point
     
     def close(self):
         self.cache.close()
+        self.bad_cache.close()
 
-def location_fixer(location: str) -> str:
+
+def locality_fixer(location: str) -> Optional[str]:
     '''Ugly but efficiet way to fix human bugs '''
 
     location = location.lower().strip()
@@ -91,9 +106,53 @@ def location_fixer(location: str) -> str:
 
     return ' '.join(loc_list)
 
+def to_lower_fixer(location: str) -> Optional[str]:
+    return location.lower().strip()
+
+def region_fixer(location: str) -> Optional[str]:
+    query = location.lower().strip()
+    # kyiv fix 
+    return query.replace('м. ', '').replace('місто ', '')
+
+def countryName_fixer(location: str) -> Optional[str]:
+    query = location.lower().strip() 
+
+    if query not in ALLOWED_COUNTRIES:
+        return None
+
+    return query
+
+def address_to_location(address, geolocator, fixers=None):
+    
+    apply_fixer = lambda data, field_name, fixers : fixers[field_name](data.get(field_name,''))  if field_name in fixers else data.get(field_name,'') 
+    fixers = fixers or {}
+
+    locality = apply_fixer(address, 'locality', fixers)
+    region = apply_fixer(address, 'region', fixers)
+    countryName = apply_fixer(address, 'countryName', fixers)
+
+    point = None
+    query_info=[locality,region,countryName]
+
+    # print(query_info)
+    if all(query_info):
+        point = geolocator(' '.join(query_info))
+
+    # try to search by postal code
+    if point is None and 'postalCode' in address:
+        postalCode = apply_fixer(address, 'postalCode', fixers)
+        query_info=[postalCode,region,countryName]
+        if all(query_info):
+            point = geolocator(' '.join(query_info))
+
+    # if point is None:
+    #     print('Not located', query_info)
+
+    return point
+
 if __name__ == '__main__':
-    assert location_fixer('Локачинський район, село Старий Загорів') == 'старий загорів'
-    assert location_fixer('смт.Локачі') == 'локачі'
+    assert locality_fixer('Локачинський район, село Старий Загорів') == 'старий загорів'
+    assert locality_fixer('смт.Локачі') == 'локачі'
 
     geolocator = CachedGeolocator(cache_dir='./data/geo_cache', verbose=True)
     time.sleep(2)

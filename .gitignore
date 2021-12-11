@@ -52,3 +52,5 @@ docs/_build/
 test_*/
 
 experiments/
+
+*.gzip

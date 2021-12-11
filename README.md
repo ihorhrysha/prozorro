@@ -39,9 +39,15 @@ pip install -r requirements.txt
 
 run spider
 
+* `tender` grabs the whole json, `etender` filters eauctions
+* ~ 2 days per 3 years on 1 IP
+* you can reduce the amount of data by filtering input json by fields you need in settings 
+
+
 ```bash
 cd scraper
-scrapy crawl tenders -a start='2021-01-01' -a end='2021-10-01'
+scrapy crawl etenders -a start='2019-01-01' -a end='2021-10-01'
 ```
 
-Example of usage in get.ipynb
+Example of usage and EDA in [get.ipynb](./get.ipynb)
+Transformation of denorm data into DS usable frame(describes relation between buyers and suppliers) in [etl.ipynb](./etl.ipynb)

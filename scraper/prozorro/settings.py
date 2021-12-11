@@ -90,8 +90,28 @@ AUTOTHROTTLE_TARGET_CONCURRENCY = 16.0
 
 MONGO_URI = 'mongodb://localhost:27017'
 MONGO_DATABASE = 'prozorro'
+MONGO_COLLECTION = 'etenders'
 ITEM_PIPELINES = {
    'prozorro.pipelines.MongoPipeline': 300,
 }
+
+FIELD_FILTER = [
+   'date',
+   'dateModified',
+   'tenderID',
+   'owner',
+   'mainProcurementCategory',
+   'procurementMethod',
+   'submissionMethod',
+   'numberOfBids',
+   'status',
+   'procurementMethodType',
+   'value',
+   'procuringEntity',
+   'bids',
+   'awards',
+   'items',
+   'lots'
+]
 
 LOG_LEVEL = 'INFO'

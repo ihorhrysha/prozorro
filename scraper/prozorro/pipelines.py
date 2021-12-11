@@ -11,22 +11,24 @@ import pymongo
 
 class MongoPipeline:
 
-    collection_name = 'tenders'
-
-    def __init__(self, mongo_uri, mongo_db):
+    def __init__(self, mongo_uri, mongo_db, mongo_collection_name, fields):
         self.mongo_uri = mongo_uri
         self.mongo_db = mongo_db
+        self.fields = fields
+        self.mongo_collection_name = mongo_collection_name
 
     @classmethod
     def from_crawler(cls, crawler):
         return cls(
             mongo_uri=crawler.settings.get('MONGO_URI'),
-            mongo_db=crawler.settings.get('MONGO_DATABASE')
+            mongo_db=crawler.settings.get('MONGO_DATABASE'),
+            mongo_collection_name=crawler.settings.get('MONGO_COLLECTION'),
+            fields=crawler.settings.get('FIELD_FILTER')
         )
 
     def open_spider(self, spider):
         self.client = pymongo.MongoClient(self.mongo_uri)
-        self.db = self.client[self.mongo_db]
+        self.collection = self.client[self.mongo_db][self.mongo_collection_name]
 
     def close_spider(self, spider):
         self.client.close()
@@ -34,9 +36,10 @@ class MongoPipeline:
     def process_item(self, item, spider):
         tender = item['data']
 
+        tender_filtered = { field: tender[field] for field in self.fields if field in tender}
+
         # using tender id as mongo uid
         tender_id = tender['id']
-        del tender['id']
         
-        self.db[self.collection_name].update({'_id':tender_id}, tender, upsert=True)
+        self.collection.update({'_id':tender_id}, tender_filtered, upsert=True)
         return item
