@@ -22,7 +22,7 @@ class CachedGeolocator:
             antithrottling: bool = True, 
             verbose:bool=False):
         
-        self.geocoder: Nominatim = geocoder or Nominatim(user_agent="transparent_chelicks")
+        self.geocoder: Nominatim = geocoder or Nominatim(user_agent="transparent_chelicks", timeout=10000)
         cache_dir = cache_dir or './'
         self.cache: Cache = Cache(directory=cache_dir)
         bad_cache_dir = bad_cache_dir or './bad'
@@ -124,14 +124,17 @@ def countryName_fixer(location: str) -> Optional[str]:
 
 def address_to_location(address, geolocator, fixers=None):
     
-    apply_fixer = lambda data, field_name, fixers : fixers[field_name](data.get(field_name,''))  if field_name in fixers else data.get(field_name,'') 
+    point = None
+    if not address:
+        return point
+
+    apply_fixer = lambda data, field_name, fixers : fixers[field_name](data.get(field_name,''))  if (field_name in fixers) and isinstance(data.get(field_name), str) else data.get(field_name,'') 
     fixers = fixers or {}
 
     locality = apply_fixer(address, 'locality', fixers)
     region = apply_fixer(address, 'region', fixers)
     countryName = apply_fixer(address, 'countryName', fixers)
-
-    point = None
+    
     query_info=[locality,region,countryName]
 
     # print(query_info)
