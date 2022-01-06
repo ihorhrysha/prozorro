@@ -219,7 +219,8 @@ def transform_dataset(df):
                 })
             ),
             left_on=["id", 'lots_id'], 
-            right_on=['bids_parent_id', 'bids_value_relatedLot']
+            right_on=['bids_parent_id', 'bids_value_relatedLot'],
+            how="left"
         )
         .drop(columns=['bids_parent_id', 'bids_value_relatedLot'])
 
