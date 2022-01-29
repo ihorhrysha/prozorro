@@ -1,6 +1,8 @@
 
 # Data Science in Real World
 
+## Task and milestones
+
 **Goal**: The results should be in form of recommendation to the stakeholders 
 * What and how can they improve in Prozorro working processes?
 * Are there any patterns or anomalies that should attract attention?
@@ -27,7 +29,9 @@ Our team split into two separate streams, one will work on supplier recommendati
 ### Stage 4 | 16.12
 *Final presentation to the stakeholders.*
 
-## Fast approach to get data from Prozorro
+## Implementation
+
+### Fast approach to get data from Prozorro
 
 Install Scrapy and Pymongo
 
@@ -49,5 +53,28 @@ cd scraper
 scrapy crawl etenders -a start='2019-01-01' -a end='2021-10-01'
 ```
 
-Example of usage and EDA in [get.ipynb](./get.ipynb)
-Transformation of denorm data into DS usable frame(describes relation between buyers and suppliers) in [etl.ipynb](./etl.ipynb)
+### Data transformation
+
+* to plain dataframe suitable for data exploration. Transformation of denorm data into DS usable frame(describes relation between buyers and suppliers) in [etl_func.ipynb](./notebooks/etl_func.ipynb)\
+* to suppliers oriented format. Main purpose to crate data frame suible for search engine, examle can be found here.
+
+### Simple supplier search engine
+
+Install ElasticSearch
+
+Install App dependencies
+
+```bash
+pip install -r ./app/requirements.txt 
+```
+Run an App
+
+```bash
+streamlit run app/app.py
+```
+
+Create index and populate with the data created on **transformation step**
+
+Try to use: put data manually or by id of existing tender
+
+Detailed description of an App you can find [here](./app/README.MD)

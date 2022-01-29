@@ -54,3 +54,4 @@ test_*/
 experiments/
 
 *.gzip
+.vscode

@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Union
 import csv
 
 '''
@@ -21,6 +21,14 @@ class DK021:
         self.code: str = code
         self.parent: DK021 = parent
         self.children: Dict[str, DK021] = {}
+
+    @classmethod
+    def split_code(cls, code:str, sep:str=None)->Union[List[str], str]:
+        splitted = [code[sls] for sls in cls.LEVEL_RANGE.values()]
+        if sep:
+            return sep.join(splitted)
+        else:
+            return splitted
 
     def _split_code_description(self, element: str) -> Tuple[str, str]:
         code = element.split(' ')[0].strip()

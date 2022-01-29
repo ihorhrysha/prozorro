@@ -9,6 +9,23 @@ def soft_get(dct, field):
         return pd.NA
     return dct.get(field,pd.NA)
 
+def get_all_items_chunk(df):
+    return (
+        subcollection_to_df(df, 'items')
+        .add_prefix('all_items_')
+        .fillna(value={'all_items_relatedLot':WITHOUT_LOTS})
+        .assign(
+            all_items_code = lambda d: d.all_items_classification.apply(lambda v: soft_get(v,'id'))
+        )
+        .query('~all_items_code.isna()')
+        [[
+            'all_items_parent_id', 'all_items_relatedLot', 'all_items_code', 'all_items_description'
+        ]]
+        .groupby(['all_items_parent_id','all_items_relatedLot'])
+        .agg(lambda x: list(set(x)))
+        .reset_index()
+    )
+
 def subcollection_to_df(df, field_name, parent_field_name='id'):
     sub = []
 

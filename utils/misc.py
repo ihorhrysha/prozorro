@@ -1,11 +1,13 @@
 import pandas as pd
 from itertools import islice, chain
 
-def batch(iterable, size):
-    sourceiter = iter(iterable)
+def batch(iterable, batch_size=100):
+    iterator = iter(iterable)
     while True:
-        batchiter = islice(sourceiter, size)
-        yield chain([next(batchiter)], batchiter)
+        chunk = list(islice(iterator, batch_size))
+        if not chunk:
+            return
+        yield chunk
 
 def mem_usg(df):
     return df.memory_usage(deep=True).sum()

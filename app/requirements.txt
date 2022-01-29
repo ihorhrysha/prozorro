@@ -1,0 +1,4 @@
+pyarrow
+elasticsearch
+streamlit
+pandas
